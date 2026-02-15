@@ -1,0 +1,51 @@
+name: no_excuses
+description: "NoExcuses: AI-powered roast & motivation reminder app"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  shimmer: ^3.0.0
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+
+  # Notifications
+  flutter_local_notifications: ^19.0.0
+  timezone: ^0.10.0
+  flutter_timezone: ^3.0.1
+
+  # Storage
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.3.5
+  uuid: ^4.5.1
+
+  # Networking
+  http: ^1.2.2
+
+  # Utils
+  intl: ^0.20.2
+  lucide_icons_flutter: ^3.1.9
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: "^0.13.1"
+
+flutter:
+  uses-material-design: true
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "AppIcons/playstore.png"
+  min_sdk_android: 21
