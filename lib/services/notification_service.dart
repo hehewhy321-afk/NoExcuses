@@ -38,7 +38,7 @@ class NotificationService {
     }
 
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@mipmap/launcher_icon',
     );
     const initSettings = InitializationSettings(android: androidSettings);
 
@@ -95,7 +95,7 @@ class NotificationService {
             channelDescription: AppConstants.notificationChannelDesc,
             importance: Importance.high,
             priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
+            icon: '@mipmap/launcher_icon',
             enableVibration: true,
             playSound: true,
             styleInformation: BigTextStyleInformation(

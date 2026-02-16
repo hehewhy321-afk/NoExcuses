@@ -14,11 +14,11 @@ import 'features/app_shell.dart';
 import 'features/roast/roast_screen.dart';
 import 'design/motion.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Lock to portrait
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   // System UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
@@ -30,46 +30,65 @@ void main() async {
     ),
   );
 
-  // Initialize notifications
-  await NotificationService.init();
-
-  // Check if onboarded
-  final onboarded = await SecureStorage.readBool(AppConstants.keyOnboarded);
-
-  runApp(ProviderScope(child: RealityCheckApp(initiallyOnboarded: onboarded)));
+  runApp(const ProviderScope(child: RealityCheckApp()));
 }
 
 class RealityCheckApp extends StatefulWidget {
-  final bool initiallyOnboarded;
-  const RealityCheckApp({super.key, required this.initiallyOnboarded});
+  const RealityCheckApp({super.key});
 
   @override
   State<RealityCheckApp> createState() => _RealityCheckAppState();
 }
 
 class _RealityCheckAppState extends State<RealityCheckApp> {
-  late bool _onboarded;
+  bool _initialized = false;
+  bool _onboarded = false;
   StreamSubscription? _notificationSub;
 
   @override
   void initState() {
     super.initState();
-    _onboarded = widget.initiallyOnboarded;
+    _initApp();
+  }
 
-    if (_onboarded) {
-      // Pre-generate roasts for scheduled notifications
-      _preGenerateRoasts();
-    }
+  Future<void> _initApp() async {
+    try {
+      // Initialize notifications with timeout to prevent hang
+      await NotificationService.init().timeout(const Duration(seconds: 5));
 
-    // Check if app was opened from a notification (cold start)
-    _checkNotificationLaunch();
+      // Check if onboarded
+      _onboarded = await SecureStorage.readBool(AppConstants.keyOnboarded);
 
-    // Listen for notification taps while app is running
-    _notificationSub = NotificationService.onNotificationTap.listen((payload) {
-      if (payload != null && mounted) {
-        _handleNotificationPayload(payload);
+      if (_onboarded) {
+        _preGenerateRoasts();
       }
-    });
+
+      // Check for launch notification
+      _checkNotificationLaunch();
+
+      // Listen for notification taps
+      _notificationSub = NotificationService.onNotificationTap.listen((
+        payload,
+      ) {
+        if (payload != null && mounted) {
+          _handleNotificationPayload(payload);
+        }
+      });
+
+      if (mounted) {
+        setState(() {
+          _initialized = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Initialization error: $e');
+      // Still proceed to show the app even if some init fails
+      if (mounted) {
+        setState(() {
+          _initialized = true;
+        });
+      }
+    }
   }
 
   @override
@@ -187,8 +206,36 @@ class _RealityCheckAppState extends State<RealityCheckApp> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_initialized) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.darkTheme,
+        home: Scaffold(
+          backgroundColor: AppTheme.surfaceDark,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.local_fire_department,
+                  size: 64,
+                  color: AppTheme.accentColor,
+                ),
+                const SizedBox(height: 24),
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppTheme.accentColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return MaterialApp(
-      title: 'Reality Check',
+      title: 'NoExcuses',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       home: _onboarded
